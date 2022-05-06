@@ -1,3 +1,4 @@
+from pathlib import Path
 import aria2p
 import time
 from rich.console import Console
@@ -29,6 +30,9 @@ cBold = "\033[1m"
 
 # Default Download directory
 DOWN = "/home/athul/Downloads"
+
+# Image directory
+imgDir = "/home/athul/.imgs"
 
 
 # Progress Bar
@@ -66,53 +70,76 @@ def getFileType(fileName):
 os.system("clear")
 print(f"{cBold}{cMagenta}{pyfiglet.figlet_format('Downloader')}{cEnd}")
 
-url = input(f"{cBold}{cBlue}Download link: {cEnd}")
+urls = input(f"{cBold}{cBlue}Download links: {cEnd}").split(" ")
 
-aria2.purge()
-aria2.add(url)
-with console.status("[bold green]Checking download link...") as status:
-    while True:
-        downloads = aria2.get_downloads()
-        if downloads[0].gid != None and downloads[0].total_length != 0:
-            break
+for link in urls:
+    aria2.purge()
+    aria2.add(link)
+    with console.status("[bold green]Checking download link...") as status:
+        while True:
+            downloads = aria2.get_downloads()
+            if downloads[0].gid != None and downloads[0].total_length != 0:
+                break
 
+    fileInfo = getFileType(downloads[0].name)
+    magic_char = "\033[F"
+    fileName = f"{cYellow}{downloads[0].name}{cEnd}"
+    fileType = f"{cBold}{cYellow}{fileInfo['type']}{cEnd}"
+    totalString = f"{cBold}{cBlue}{downloads[0].total_length_string(True)}{cEnd}"
+    print(f"\n\n{cBold}{cMagenta} Downloading [ {urls.index(link)+1} / {len(urls)} ] links{cEnd}")
+    print(f"{cBold} Filename:{cEnd} {fileName}\n\n\n")
 
-fileInfo = getFileType(downloads[0].name)
-magic_char = "\033[F"
-fileName = f"{cYellow}{downloads[0].name}{cEnd}"
-fileType = f"{cBold}{cYellow}{fileInfo['type']}{cEnd}"
-totalString = f"{cBold}{cBlue}{downloads[0].total_length_string(True)}{cEnd}"
-print(f"\n\n{cBold} Filename:{cEnd} {fileName}\n\n\n")
+    while downloads[0].is_complete != True:
+        try:
+            downloads[0].update()
+            cmpBytes = downloads[0].completed_length_string(False).split(" ")
+            progressPerc = f"{cBold}{cCyan}{downloads[0].progress_string()}{cEnd}"
+            speedString = (
+                f"{cBold}{cMagenta}{downloads[0].download_speed_string(True)}{cEnd}"
+            )
+            cmpString = (
+                f"{cBold}{cBlue}{downloads[0].completed_length_string(True)}{cEnd}"
+            )
+            etaString = f"{cBold}{cBlue}{downloads[0].eta_string(1)}{cEnd}"
+            progressBar = getProgress(int(cmpBytes[0]), downloads[0].total_length)
+            print(
+                f"{magic_char*3}{cBold} Progress:{cEnd}{progressBar} {progressPerc}\n{cBold} Downloaded:{cEnd} {cmpString} {cBold}of{cEnd} {totalString}\n{cBold} Speed:{cEnd} {speedString} {cBold} ETA:{cEnd} {etaString}\n{cBold} Type:{cEnd} {fileType}",
+                end="",
+                flush=True,
+            )
 
+            time.sleep(1)
+        except KeyboardInterrupt:
+            aria2.remove_all(True)
+            subprocess.Popen(
+                ["notify-send", "Dowload Failed", f"--icon={imgDir}/failed.png"]
+            )
+        except Exception:
+            subprocess.Popen(
+                ["notify-send", "Dowload Failed", f"--icon={imgDir}/failed.png"]
+            )
 
-while downloads[0].is_complete != True:
-    try:
-        downloads[0].update()
-        cmpBytes = downloads[0].completed_length_string(False).split(" ")
-        progressPerc = f"{cBold}{cCyan}{downloads[0].progress_string()}{cEnd}"
-        speedString = (
-            f"{cBold}{cMagenta}{downloads[0].download_speed_string(True)}{cEnd}"
+    moveFolder = fileInfo["moveFolder"]
+    if downloads[0].has_failed:
+        print(f"\n{cRed}Error Occured in download{cEnd}")
+        subprocess.Popen(
+            ["notify-send", "Dowload Failed", f"--icon={imgDir}/failed.png"]
         )
-        cmpString = f"{cBold}{cBlue}{downloads[0].completed_length_string(True)}{cEnd}"
-        etaString = f"{cBold}{cBlue}{downloads[0].eta_string(1)}{cEnd}"
-        progressBar = getProgress(int(cmpBytes[0]), downloads[0].total_length)
+    else:
+        downFile = Path(f"{DOWN}/{moveFolder}/{downloads[0].name}")
+        if downFile.exists():
+            os.remove(downFile)
+        aria2.move_files(downloads, f"{DOWN}/{moveFolder}/", True)
+        os.system("clear")
+        print(f"{cBold}{cMagenta}{pyfiglet.figlet_format('Downloader')}{cEnd}")
         print(
-            f"{magic_char*3}{cBold} Progress:{cEnd}{progressBar} {progressPerc}\n{cBold} Downloaded:{cEnd} {cmpString} {cBold}of{cEnd} {totalString}\n{cBold} Speed:{cEnd} {speedString} {cBold} ETA:{cEnd} {etaString}\n{cBold} Type:{cEnd} {fileType}",
-            end="",
-            flush=True,
+            f"\n {cBold}{cGreen}File Downloaded Successfully!\n{cEnd}{cBold} Filename: {fileName}\n{cBold} Size: {totalString}\n{cBold} Type:{cEnd} {fileType}\n{cBold} Path:{cEnd} {cBold}{cMagenta}{DOWN}/{moveFolder}{cEnd}"
         )
-
-        time.sleep(1)
-    except KeyboardInterrupt:
-        aria2.remove_all(True)
-
-moveFolder = fileInfo["moveFolder"]
-if downloads[0].has_failed:
-    print(f"\n{cRed}Error Occured in download{cEnd}")
-else:
-    aria2.move_files(downloads, f"{DOWN}/{moveFolder}/", True)
-    os.system("clear")
-    print(f"{cBold}{cMagenta}{pyfiglet.figlet_format('Downloader')}{cEnd}")
-    print(
-        f"\n {cBold}{cGreen}File Downloaded Successfully!\n{cEnd}{cBold} Filename: {fileName}\n{cBold} Size: {totalString}\n{cBold} Type:{cEnd} {fileType}\n{cBold} Path:{cEnd} {cBold}{cMagenta}{DOWN}/{moveFolder}{cEnd}"
-    )
+        subprocess.Popen(
+            [
+                "notify-send",
+                "Dowload Completed",
+                f"{downloads[0].name}",
+                f"--icon={imgDir}/success.png",
+            ]
+        )
