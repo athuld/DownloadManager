@@ -86,8 +86,11 @@ def post_download_action(file_details_list, download, link):
 def show_post_download_stats():
     os.system("clear")
     print(f"{cBold}{cMagenta}{pyfiglet.figlet_format('Downloader')}{cEnd}")
-    if len(Vars.finished_downloads) > 0:
-        print(f"\n{cBold}{cGreen} Finished Downloaded List!{cEnd}")
+    finished_nums = len(Vars.finished_downloads)
+    if finished_nums > 0:
+        print(
+            f"\n{cBold}{cGreen} Finished downloading {finished_nums} links successfully!{cEnd}"
+        )
 
     for download in Vars.finished_downloads:
         fileInfo = download["fileInfo"]
@@ -96,12 +99,11 @@ def show_post_download_stats():
         fileType = download["fileType"]
         totalString = download["totalString"]
         print(
-            f"\n{cBold} Filename: {fileName}\n{cBold} Size: {totalString}\n{cBold} Type:{cEnd} {fileType}\n{cBold} Path:{cEnd} {cBold}{cMagenta}{Vars.downDir}/{moveFolder}{cEnd}",
-            end="",
-            flush=True,
+            f"\n{cBold} Filename: {fileName}\n{cBold} Size: {totalString}\n{cBold} Type:{cEnd} {fileType}\n{cBold} Path:{cEnd} {cBold}{cMagenta}{Vars.downDir}/{moveFolder}{cEnd}"
         )
-    if len(Vars.failed_downloads) > 0:
-        print(f"\n{cBold}-----------------------------------------------------{cEnd}")
-        print(f"\n{cBold}{cRed} Failed Downloaded List!{cEnd}")
+    failed_nums = len(Vars.failed_downloads)
+    if failed_nums > 0:
+        print(f"\n{cBold}--------------------------------------------------{cEnd}")
+        print(f"\n{cBold}{cRed} Failed to download {failed_nums} links{cEnd}")
         for link in Vars.failed_downloads:
             print(f"\n{cBold} {link}{cEnd}")

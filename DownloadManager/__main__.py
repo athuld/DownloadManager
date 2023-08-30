@@ -28,9 +28,14 @@ def show_downloader():
             downloads = Vars.active_downloads.copy()
             for link, download in downloads.items():
                 print_downloader(download=download, link=link)
-            Vars.clear_nums = len(downloads) * 8
-            print(f"{magic_char * Vars.clear_nums}", end="", flush=True)
-            sleep(3)
+            current_nums = len(downloads) * 8
+            if current_nums < Vars.clear_nums:
+                print(f"\033[{current_nums}A",end="",flush=True)
+                print("\033[J",end="",flush=True)
+            else:
+                print(f"{magic_char * current_nums}", end="", flush=True)
+                sleep(3)
+            Vars.clear_nums = current_nums
         if len(Vars.urls) == 0 and len(Vars.active_downloads) == 0:
             break
 

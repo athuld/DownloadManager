@@ -26,7 +26,7 @@ from DownloadManager.utils.helpers import (
 
 def add_download_link(link):
     gid = generate_gid()
-    opts = {"gid": gid}
+    opts = {"gid": gid,"dir":"/tmp/downloads"}
     timeout = time.time() + 15
     aria2.add(uri=link, options=opts)
     with console.status("[bold green]Checking download link...") as status:
