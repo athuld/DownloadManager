@@ -1,3 +1,7 @@
+import os
+
+
+HOME=os.path.expanduser("~")
 
 class Vars(object):
     # Active downloads dict
@@ -15,6 +19,6 @@ class Vars(object):
     # Limit of the parallel downloads
     limit=3
     # Default Download directory
-    downDir = "/home/athul/Downloads"
+    downDir = f"{HOME}/Downloads"
     # Image directory
-    imgDir = "/home/athul/Documents/DownloadManagerPython/imgs"
+    imgDir = f"{os.getcwd()}/imgs"

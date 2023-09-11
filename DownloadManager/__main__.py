@@ -1,3 +1,4 @@
+import sys
 import threading
 from time import sleep
 import pyfiglet
@@ -43,7 +44,11 @@ def show_downloader():
 def start_downloader():
     os.system("clear")
     print(f"{cBold}{cMagenta}{pyfiglet.figlet_format('Downloader')}{cEnd}")
-    Vars.urls = input(f"{cBold}{cBlue}Download links: {cEnd}").split(" ")
+    if len(sys.argv) > 1:
+        Vars.urls = sys.argv[1:].copy()
+        print(f"{cBold}{cBlue}Download links: {cEnd}{' '.join(Vars.urls)}")
+    else:
+        Vars.urls = input(f"{cBold}{cBlue}Download links: {cEnd}").split(" ")
     remove_duplicate_links()
     thread = threading.Thread(target=show_downloader)
     thread.start()

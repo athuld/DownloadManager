@@ -1,4 +1,3 @@
 aria2p
 rich
-pyfiglet
-pgrep
+pyfiglet==0.8.post1

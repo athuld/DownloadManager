@@ -12,7 +12,7 @@ from DownloadManager.utils.colors import cGreen, cBold, cRed, cEnd, cMagenta
 
 # remove duplicate links
 def remove_duplicate_links():
-    cleaned_urls = list(set(Vars.urls))
+    cleaned_urls = list(dict.fromkeys(Vars.urls))
     Vars.urls = cleaned_urls.copy()
     Vars.urls_cpy = Vars.urls.copy()
 
